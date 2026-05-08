@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoalieVault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --rink:#06121f;--rink2:#0b1f35;--blue:#1155cc;--red:#c0392b;
+  --gold:#f5a623;--gold2:#ffd166;--text:#06121f;--muted:#5a7899;
+  --surface:#fff;--surface2:#f4f8fc;--border:#d5e6f5;
+  --w:#1a6b3a;--l:#b22222;--otl:#c05800;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--surface2);color:var(--text);min-height:100vh}
+header{background:var(--rink);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px #000a}
+.hdr{max-width:1300px;margin:0 auto;display:flex;align-items:center;gap:20px;padding:10px 24px}
+.wordmark{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:2px;color:var(--gold2);white-space:nowrap}
+.wordmark span{color:#fff}
+nav{display:flex;gap:2px;flex:1}
+nav button{background:none;border:none;color:rgba(255,255,255,.55);font-family:'DM Sans',sans-serif;font-weight:600;font-size:13px;padding:7px 16px;border-radius:6px;cursor:pointer;transition:.15s;letter-spacing:.5px;text-transform:uppercase}
+nav button:hover{color:#fff;background:rgba(255,255,255,.08)}
+nav button.active{color:var(--gold2);background:rgba(245,166,35,.12)}
+.sync-status{margin-left:auto;font-size:11px;font-family:'DM Mono',monospace;padding:4px 10px;border-radius:4px;transition:.3s}
+.sync-ok{color:#4caf8a;background:rgba(76,175,138,.1)}
+.sync-err{color:#e57373;background:rgba(229,115,115,.1)}
+.sync-busy{color:var(--gold2);background:rgba(245,166,35,.1)}
+main{max-width:1300px;margin:0 auto;padding:24px}
+.panel{display:none}.panel.active{display:block}
+.hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:22px}
+.hero-card{background:var(--rink);border-radius:8px;padding:16px 12px;text-align:center}
+.hero-card .v{font-family:'Bebas Neue',sans-serif;font-size:36px;line-height:1;color:var(--gold2)}
+.hero-card .l{font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-top:3px}
+.hero-card.hi{background:linear-gradient(135deg,var(--blue),#0a3a7a)}
+.sh{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--rink);margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.sh::after{content:'';flex:1;height:1px;background:var(--border)}
+.card{background:var(--surface);border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-bottom:20px}
+.card-hdr{background:var(--rink2);color:#fff;padding:11px 18px;display:flex;align-items:center;justify-content:space-between}
+.card-hdr .title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px}
+.card-hdr .sub{font-size:11px;color:rgba(255,255,255,.4)}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:var(--rink);color:rgba(255,255,255,.65);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:8px 12px;text-align:center;white-space:nowrap}
+th:first-child{text-align:left}
+td{padding:8px 12px;text-align:center;border-bottom:1px solid var(--border);font-size:13px}
+td:first-child{text-align:left;font-weight:500}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:var(--surface2)}
+tr.tot td{background:#e8f0fb!important;font-weight:700;font-family:'DM Mono',monospace;border-top:2px solid var(--blue)}
+.svp-good{color:var(--w);font-weight:700}
+.svp-ok{color:var(--otl);font-weight:700}
+.svp-bad{color:var(--l);font-weight:700}
+.W{color:var(--w);font-weight:700}.L{color:var(--l)}.OTL{color:var(--otl)}
+.so-badge{background:#e8f5ee;color:var(--w);font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.fg select,.fg input{font-family:'DM Sans',sans-serif;font-size:13px;padding:7px 11px;border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--text);min-width:140px}
+.fg select:focus,.fg input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(17,85,204,.1)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;padding:18px}
+.fgroup{display:flex;flex-direction:column;gap:5px}
+.fgroup label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.fgroup input,.fgroup select{font-family:'DM Sans',sans-serif;font-size:14px;padding:8px 12px;border:1px solid var(--border);border-radius:7px;background:#fff;color:var(--text);transition:.15s}
+.fgroup input:focus,.fgroup select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(17,85,204,.1)}
+.form-actions{padding:0 18px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{font-family:'Bebas Neue',sans-serif;letter-spacing:1px;font-size:16px;padding:9px 22px;border-radius:7px;border:none;cursor:pointer;transition:.15s}
+.btn-primary{background:var(--rink);color:#fff}.btn-primary:hover{background:var(--blue)}
+.btn-ghost{background:var(--surface2);color:var(--text);border:1px solid var(--border)}.btn-ghost:hover{background:var(--border)}
+.btn-danger{background:#fde8e8;color:var(--l);border:1px solid #f5c0c0}.btn-danger:hover{background:#fbd0d0}
+.feedback{font-size:13px;font-weight:600;color:var(--w)}.feedback.err{color:var(--l)}
+.del{background:none;border:none;color:#ccc;cursor:pointer;font-size:15px;padding:2px 6px;border-radius:4px;transition:.15s}
+.del:hover{color:var(--l);background:#fde8e8}
+.empty{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+.info-box{background:#e8f0fb;border-left:4px solid var(--blue);border-radius:0 8px 8px 0;padding:12px 16px;font-size:13px;color:#1a3060;margin-bottom:16px;line-height:1.6}
+.info-box strong{font-weight:700}
+.import-area{display:flex;gap:10px;align-items:center;padding:18px;flex-wrap:wrap}
+.import-area input[type=file]{font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="hdr">
+    <div class="wordmark">🥅 <span>Goalie</span>Vault</div>
+    <nav>
+      <button class="active" onclick="goNav('dashboard',this)">Dashboard</button>
+      <button onclick="goNav('gamelog',this)">Game Log</button>
+      <button onclick="goNav('seasons',this)">Seasons</button>
+      <button onclick="goNav('addgame',this)">Add Game</button>
+      <button onclick="goNav('importexport',this)">Import / Export</button>
+    </nav>
+    <div id="sync-status" class="sync-status sync-ok">✓ synced</div>
+  </div>
+</header>
+<main>
+
+<!-- DASHBOARD -->
+<div id="panel-dashboard" class="panel active">
+  <div class="sh">Career Overview</div>
+  <div class="hero-grid" id="hero"></div>
+  <div class="sh">Season Breakdown</div>
+  <div class="card">
+    <div class="card-hdr"><span class="title">All Seasons</span><span class="sub">SA=0 games excluded from stats</span></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Season</th><th>Venue</th><th>GP</th><th>W</th><th>L</th><th>OTL</th><th>SA</th><th>GA</th><th>SV</th><th>SV%</th><th>GAA</th><th>SO</th></tr></thead>
+      <tbody id="season-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- GAME LOG -->
+<div id="panel-gamelog" class="panel">
+  <div class="sh">Game Log</div>
+  <div class="filters">
+    <div class="fg"><label>Search</label><input type="text" id="search-box" placeholder="Opponent, season…" oninput="renderLog()"></div>
+    <div class="fg"><label>Season</label><select id="f-season" onchange="renderLog()"><option value="">All Seasons</option></select></div>
+    <div class="fg"><label>Venue</label><select id="f-venue" onchange="renderLog()"><option value="">All Venues</option></select></div>
+    <div class="fg"><label>Result</label><select id="f-result" onchange="renderLog()">
+      <option value="">All</option><option value="W">Win</option><option value="L">Loss</option><option value="OTL">OTL</option>
+    </select></div>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Season</th><th>Venue</th><th>Div</th><th>Opponent</th><th>SA</th><th>GA</th><th>SV</th><th>SV%</th><th>Result</th><th>SO</th><th>Min</th><th></th></tr></thead>
+      <tbody id="log-tbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- SEASONS -->
+<div id="panel-seasons" class="panel">
+  <div class="sh">Season Detail</div>
+  <div class="filters">
+    <div class="fg"><label>Season</label>
+      <select id="f-detail-season" onchange="renderSeasonDetail()"><option value="">Pick a season…</option></select>
+    </div>
+  </div>
+  <div id="season-detail-content"></div>
+</div>
+
+<!-- ADD GAME -->
+<div id="panel-addgame" class="panel">
+  <div class="sh">Add Game</div>
+  <div class="info-box">Games with <strong>0 shots against</strong> are saved but excluded from stats (scorekeeper didn't record shots).</div>
+  <div class="card">
+    <div class="card-hdr"><span class="title">New Game Entry</span></div>
+    <div class="form-grid">
+      <div class="fgroup"><label>Date</label><input type="date" id="f-date"></div>
+      <div class="fgroup"><label>Season</label><input type="text" id="f-season-add" placeholder="e.g. Winter 2025" list="season-dl"><datalist id="season-dl"></datalist></div>
+      <div class="fgroup"><label>Venue</label><input type="text" id="f-venue-add" placeholder="e.g. Nytex" list="venue-dl"><datalist id="venue-dl"></datalist></div>
+      <div class="fgroup"><label>Division</label><input type="text" id="f-div" placeholder="DU, DM, CL…"></div>
+      <div class="fgroup"><label>Opponent</label><input type="text" id="f-opp" placeholder="Team name"></div>
+      <div class="fgroup"><label>Goals For</label><input type="number" id="f-gf" min="0" placeholder="0"></div>
+      <div class="fgroup"><label>Shots Against</label><input type="number" id="f-sa" min="0" placeholder="0"></div>
+      <div class="fgroup"><label>Goals Against</label><input type="number" id="f-ga" min="0" placeholder="0"></div>
+      <div class="fgroup"><label>Empty Net GA</label><input type="number" id="f-en" min="0" placeholder="0"></div>
+      <div class="fgroup"><label>Result</label><select id="f-res"><option value="W">Win</option><option value="L">Loss</option><option value="OTL">OT/SO Loss</option></select></div>
+      <div class="fgroup"><label>OT/SO?</label><select id="f-ot"><option value="">No</option><option value="OT">OT</option><option value="SO">SO</option></select></div>
+      <div class="fgroup"><label>Notes</label><input type="text" id="f-notes" placeholder="Optional"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="addGame()">Save Game</button>
+      <button class="btn btn-ghost" onclick="clearForm()">Clear</button>
+      <span id="add-fb" class="feedback" style="display:none"></span>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT / EXPORT -->
+<div id="panel-importexport" class="panel">
+  <div class="sh">Import / Export</div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-hdr"><span class="title">Export</span><span class="sub">Download your full game history as JSON</span></div>
+    <div class="form-actions" style="padding:18px">
+      <button class="btn btn-primary" onclick="exportJSON()">⬇ Download games.json</button>
+      <button class="btn btn-ghost" onclick="exportCSV()">⬇ Download CSV</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-hdr"><span class="title">Import JSON</span><span class="sub">Load from a games.json file — merges and deduplicates</span></div>
+    <div class="import-area">
+      <input type="file" id="import-file" accept=".json">
+      <button class="btn btn-primary" onclick="importJSON()">Import</button>
+      <span id="import-fb" class="feedback" style="display:none"></span>
+    </div>
+    <div style="padding:0 18px 16px;font-size:12px;color:var(--muted);line-height:1.6">
+      Deduplication is based on <strong>date + opponent + shots against</strong>. Games already in the database won't be added twice.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-hdr"><span class="title">Danger Zone</span></div>
+    <div class="form-actions" style="padding:18px">
+      <button class="btn btn-danger" onclick="clearAll()">🗑 Delete All Games</button>
+      <span style="font-size:12px;color:var(--muted)">This cannot be undone.</span>
+    </div>
+  </div>
+</div>
+
+</main>
+<script>
+// ── STATE ────────────────────────────────────────────────────────────────────
+let games = [];
+let saving = false;
+function uid() { return Math.random().toString(36).slice(2,10); }
+
+function syncStatus(state, msg) {
+  const el = document.getElementById('sync-status');
+  el.className = 'sync-status sync-' + state;
+  el.textContent = msg;
+}
+
+// ── API ──────────────────────────────────────────────────────────────────────
+async function apiLoad() {
+  syncStatus('busy', '⟳ loading…');
+  try {
+    const r = await fetch('/api/games');
+    if (!r.ok) throw new Error(r.status);
+    games = await r.json();
+    syncStatus('ok', `✓ synced (${games.length} games)`);
+  } catch(e) {
+    syncStatus('err', '✗ API error');
+    console.error('Load failed:', e);
+  }
+}
+
+async function apiSave() {
+  if (saving) return;
+  saving = true;
+  syncStatus('busy', '⟳ saving…');
+  try {
+    const r = await fetch('/api/games', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(games)
+    });
+    if (!r.ok) throw new Error(r.status);
+    syncStatus('ok', `✓ saved (${games.length} games)`);
+  } catch(e) {
+    syncStatus('err', '✗ save failed');
+    console.error('Save failed:', e);
+  } finally { saving = false; }
+}
+
+// ── STATS ────────────────────────────────────────────────────────────────────
+const valid = list => list.filter(g => (g.sa||0) > 0);
+
+function seasonStats(list) {
+  const map = {};
+  for (const g of valid(list)) {
+    const k = g.season + '|' + g.venue;
+    if (!map[k]) map[k] = {season:g.season,venue:g.venue,gp:0,w:0,l:0,otl:0,sa:0,ga:0,so:0};
+    const s = map[k];
+    s.gp++; s.sa+=g.sa||0; s.ga+=g.ga||0;
+    if(g.result==='W')s.w++; else if(g.result==='L')s.l++; else if(g.result==='OTL')s.otl++;
+    if(g.ga===0) s.so++;
+  }
+  return Object.values(map).sort((a,b)=>a.season.localeCompare(b.season));
+}
+
+function careerTotals(list) {
+  const vg = valid(list);
+  const sa=vg.reduce((t,g)=>t+(g.sa||0),0), ga=vg.reduce((t,g)=>t+(g.ga||0),0);
+  return {
+    gp:vg.length, w:vg.filter(g=>g.result==='W').length,
+    l:vg.filter(g=>g.result==='L').length, otl:vg.filter(g=>g.result==='OTL').length,
+    sa, ga, sv:sa-ga, svp:sa>0?(sa-ga)/sa:0,
+    gaa:vg.length>0?ga/vg.length:0, so:vg.filter(g=>g.ga===0).length
+  };
+}
+
+function svpCls(p) { return p>=0.91?'svp-good':p>=0.88?'svp-ok':'svp-bad'; }
+
+function gameRowFull(g, showDel=true) {
+  const sa=g.sa||0, ga=g.ga||0;
+  const sv=sa>0?sa-ga:'—', svp=sa>0?((sa-ga)/sa*100).toFixed(1)+'%':'—';
+  const svCls=sa>0?svpCls((sa-ga)/sa):'';
+  const rCls=g.result==='W'?'W':g.result==='L'?'L':'OTL';
+  const so=sa>0&&ga===0?'<span class="so-badge">SO</span>':'';
+  const del=showDel?`<button class="del" onclick="delGame('${g.id}')" title="Delete">✕</button>`:'';
+  return `<tr>
+    <td style="font-family:'DM Mono',monospace;font-size:12px">${g.date||'—'}</td>
+    <td style="font-size:12px">${g.season}</td>
+    <td>${g.venue}</td><td>${g.div||''}</td>
+    <td>${g.opponent}</td>
+    <td>${sa>0?sa:'<span style="color:#ccc">0</span>'}</td>
+    <td>${ga}</td><td>${sv}</td>
+    <td class="${svCls}">${svp}</td>
+    <td class="${rCls}">${g.result}${g.ot?' ('+g.ot+')':''}</td>
+    <td>${so}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${g.mp||''}</td>
+    <td>${del}</td>
+  </tr>`;
+}
+
+function gameRowShort(g) {
+  const sa=g.sa||0, ga=g.ga||0;
+  const sv=sa>0?sa-ga:'—', svp=sa>0?((sa-ga)/sa*100).toFixed(1)+'%':'—';
+  const rCls=g.result==='W'?'W':g.result==='L'?'L':'OTL';
+  const so=sa>0&&ga===0?'<span class="so-badge">SO</span>':'';
+  return `<tr>
+    <td style="font-family:'DM Mono',monospace;font-size:12px">${g.date||'—'}</td>
+    <td>${g.opponent}</td><td>${g.div||''}</td>
+    <td>${sa>0?sa:'<span style="color:#ccc">0</span>'}</td><td>${ga}</td>
+    <td>${sv}</td><td class="${sa>0?svpCls((sa-ga)/sa):''}">${svp}</td>
+    <td class="${rCls}">${g.result}${g.ot?' ('+g.ot+')':''}</td>
+    <td>${so}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${g.mp||''}</td>
+  </tr>`;
+}
+
+// ── DASHBOARD ────────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const c = careerTotals(games);
+  document.getElementById('hero').innerHTML = games.length === 0
+    ? `<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:14px">
+        No games yet. <a href="#" onclick="goNav('addgame',document.querySelectorAll('nav button')[3])">Add your first game</a> or 
+        <a href="#" onclick="goNav('importexport',document.querySelectorAll('nav button')[4])">import a file</a>.
+       </div>`
+    : [['GP',c.gp],['W',c.w],['L',c.l],['OTL',c.otl],
+       ['SA',c.sa.toLocaleString()],['GA',c.ga],['SV',c.sv.toLocaleString()],
+       ['SV%',(c.svp*100).toFixed(1)+'%'],['GAA',c.gaa.toFixed(2)],['SO',c.so]]
+      .map(([l,v],i)=>`<div class="hero-card${i>=6&&i<=7?' hi':''}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+
+  const seasons = seasonStats(games);
+  let tSA=0,tGA=0,tGP=0,tW=0,tL=0,tOTL=0,tSO=0;
+  const rows = seasons.map(s=>{
+    tSA+=s.sa;tGA+=s.ga;tGP+=s.gp;tW+=s.w;tL+=s.l;tOTL+=s.otl;tSO+=s.so;
+    const sv=s.sa-s.ga, svp=s.sa>0?(s.sa-s.ga)/s.sa:0, gaa=s.gp>0?(s.ga/s.gp).toFixed(2):'—';
+    return `<tr>
+      <td>${s.season}</td><td>${s.venue}</td><td>${s.gp}</td>
+      <td class="W">${s.w}</td><td class="L">${s.l}</td><td class="OTL">${s.otl}</td>
+      <td>${s.sa}</td><td>${s.ga}</td><td>${sv}</td>
+      <td class="${svpCls(svp)}">${s.sa>0?(svp*100).toFixed(1)+'%':'—'}</td>
+      <td>${gaa}</td><td>${s.so}</td>
+    </tr>`;
+  }).join('');
+  const tSvp=tSA>0?(tSA-tGA)/tSA:0, tGaa=tGP>0?(tGA/tGP).toFixed(2):'—';
+  document.getElementById('season-tbody').innerHTML = rows.length
+    ? rows + `<tr class="tot"><td>CAREER TOTAL</td><td>All</td><td>${tGP}</td>
+        <td>${tW}</td><td>${tL}</td><td>${tOTL}</td>
+        <td>${tSA}</td><td>${tGA}</td><td>${tSA-tGA}</td>
+        <td class="${svpCls(tSvp)}">${(tSvp*100).toFixed(1)}%</td>
+        <td>${tGaa}</td><td>${tSO}</td></tr>`
+    : `<tr><td colspan="12" class="empty">No games yet.</td></tr>`;
+}
+
+// ── GAME LOG ─────────────────────────────────────────────────────────────────
+function renderLog() {
+  const sf=document.getElementById('f-season').value;
+  const vf=document.getElementById('f-venue').value;
+  const rf=document.getElementById('f-result').value;
+  const qf=document.getElementById('search-box').value.toLowerCase();
+  let list=[...games].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(sf) list=list.filter(g=>g.season===sf);
+  if(vf) list=list.filter(g=>g.venue===vf);
+  if(rf) list=list.filter(g=>g.result===rf);
+  if(qf) list=list.filter(g=>(g.opponent||'').toLowerCase().includes(qf)||(g.season||'').toLowerCase().includes(qf));
+  document.getElementById('log-tbody').innerHTML = list.length
+    ? list.map(g=>gameRowFull(g)).join('')
+    : `<tr><td colspan="13" class="empty">No games found.</td></tr>`;
+}
+
+// ── SEASON DETAIL ─────────────────────────────────────────────────────────────
+function renderSeasonDetail() {
+  const s=document.getElementById('f-detail-season').value;
+  const el=document.getElementById('season-detail-content');
+  if(!s){el.innerHTML='';return;}
+  const list=games.filter(g=>g.season===s).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const vg=list.filter(g=>(g.sa||0)>0);
+  const sa=vg.reduce((t,g)=>t+(g.sa||0),0), ga=vg.reduce((t,g)=>t+(g.ga||0),0);
+  const svp=sa>0?(sa-ga)/sa:0, gaa=vg.length>0?(ga/vg.length).toFixed(2):'—';
+  const w=vg.filter(g=>g.result==='W').length, l=vg.filter(g=>g.result==='L').length, otl=vg.filter(g=>g.result==='OTL').length;
+  el.innerHTML=`
+    <div class="hero-grid" style="grid-template-columns:repeat(auto-fit,minmax(90px,1fr));margin-bottom:20px">
+      ${[['GP',vg.length],['W',w],['L',l],['OTL',otl],['SA',sa],['GA',ga],
+         ['SV',sa-ga],['SV%',(svp*100).toFixed(1)+'%'],['GAA',gaa],['SO',vg.filter(g=>g.ga===0).length]]
+        .map(([lb,v])=>`<div class="hero-card"><div class="v">${v}</div><div class="l">${lb}</div></div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-hdr"><span class="title">${s}</span><span class="sub">${list.length} games total, ${vg.length} with shots recorded</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Date</th><th>Opponent</th><th>Div</th><th>SA</th><th>GA</th><th>SV</th><th>SV%</th><th>Result</th><th>SO</th><th>Min</th></tr></thead>
+        <tbody>${list.map(g=>gameRowShort(g)).join('')}</tbody>
+      </table></div>
+    </div>`;
+}
+
+// ── ADD / DELETE ──────────────────────────────────────────────────────────────
+async function addGame() {
+  const g = {
+    id: uid(),
+    date: document.getElementById('f-date').value,
+    season: document.getElementById('f-season-add').value.trim(),
+    venue: document.getElementById('f-venue-add').value.trim(),
+    div: document.getElementById('f-div').value.trim(),
+    opponent: document.getElementById('f-opp').value.trim(),
+    gf: parseInt(document.getElementById('f-gf').value)||0,
+    sa: parseInt(document.getElementById('f-sa').value)||0,
+    ga: parseInt(document.getElementById('f-ga').value)||0,
+    en: parseInt(document.getElementById('f-en').value)||0,
+    result: document.getElementById('f-res').value,
+    ot: document.getElementById('f-ot').value,
+    notes: document.getElementById('f-notes').value.trim()
+  };
+  const fb=document.getElementById('add-fb');
+  if(!g.season||!g.opponent){
+    fb.className='feedback err';fb.textContent='⚠ Season and Opponent required.';fb.style.display='inline';return;
+  }
+  games.push(g);
+  await apiSave();
+  refreshAll();
+  fb.className='feedback';
+  fb.textContent=`✓ Saved: ${g.season} vs ${g.opponent}${g.sa===0?' (0 SA — excluded from stats)':''}`;
+  fb.style.display='inline';
+  setTimeout(()=>fb.style.display='none',4000);
+  clearForm();
+}
+
+async function delGame(id) {
+  if(!confirm('Delete this game?'))return;
+  games=games.filter(g=>g.id!==id);
+  await apiSave();
+  renderDashboard();
+  renderLog();
+}
+
+function clearForm() {
+  ['f-date','f-season-add','f-venue-add','f-div','f-opp','f-notes'].forEach(i=>document.getElementById(i).value='');
+  ['f-gf','f-sa','f-ga','f-en'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('f-res').value='W';
+  document.getElementById('f-ot').value='';
+}
+
+// ── IMPORT / EXPORT ───────────────────────────────────────────────────────────
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(games, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'games.json';
+  a.click();
+}
+
+function exportCSV() {
+  const headers = ['date','season','venue','div','opponent','gf','sa','ga','en','sv','sv_pct','gaa','result','ot','mp','notes'];
+  const rows = games.map(g => {
+    const sa=g.sa||0, ga=g.ga||0;
+    return [
+      g.date||'', g.season, g.venue, g.div||'', g.opponent,
+      g.gf||0, sa, ga, g.en||0,
+      sa>0?sa-ga:'', sa>0?((sa-ga)/sa).toFixed(4):'',
+      '', g.result, g.ot||'', g.mp||'', g.notes||''
+    ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
+  });
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'games.csv';
+  a.click();
+}
+
+function importJSON() {
+  const file = document.getElementById('import-file').files[0];
+  const fb = document.getElementById('import-fb');
+  if (!file) { fb.className='feedback err'; fb.textContent='⚠ No file selected.'; fb.style.display='inline'; return; }
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const incoming = JSON.parse(e.target.result);
+      if (!Array.isArray(incoming)) throw new Error('Expected a JSON array');
+      let added = 0, skipped = 0;
+      for (const g of incoming) {
+        const isDup = games.some(ex =>
+          ex.date === g.date && ex.opponent === g.opponent && ex.sa === g.sa
+        );
+        if (isDup) { skipped++; continue; }
+        games.push({...g, id: g.id || uid()});
+        added++;
+      }
+      await apiSave();
+      refreshAll();
+      fb.className='feedback';
+      fb.textContent=`✓ Imported ${added} games. ${skipped} duplicates skipped.`;
+      fb.style.display='inline';
+    } catch(err) {
+      fb.className='feedback err';
+      fb.textContent=`✗ Error: ${err.message}`;
+      fb.style.display='inline';
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function clearAll() {
+  if (!confirm('Delete ALL games? This cannot be undone.')) return;
+  games = [];
+  await apiSave();
+  refreshAll();
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function goNav(panel, btn) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+panel).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(panel==='gamelog') renderLog();
+  if(panel==='seasons') renderSeasonDetail();
+}
+
+function populateFilters() {
+  const seasons=[...new Set(games.map(g=>g.season))].sort();
+  const venues=[...new Set(games.map(g=>g.venue))].sort();
+  ['f-season','f-detail-season'].forEach(id=>{
+    const sel=document.getElementById(id);
+    while(sel.options.length>1) sel.remove(1);
+    seasons.forEach(s=>sel.appendChild(new Option(s,s)));
+  });
+  const selv=document.getElementById('f-venue');
+  while(selv.options.length>1) selv.remove(1);
+  venues.forEach(v=>selv.appendChild(new Option(v,v)));
+  // datalists for add form
+  const dl=document.getElementById('season-dl'); dl.innerHTML='';
+  seasons.forEach(s=>{const o=document.createElement('option');o.value=s;dl.appendChild(o);});
+  const vdl=document.getElementById('venue-dl'); vdl.innerHTML='';
+  venues.forEach(v=>{const o=document.createElement('option');o.value=v;vdl.appendChild(o);});
+}
+
+function refreshAll() {
+  populateFilters();
+  renderDashboard();
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(async () => {
+  await apiLoad();
+  populateFilters();
+  renderDashboard();
+})();
+</script>
+</body>
+</html>

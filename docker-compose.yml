@@ -1,0 +1,38 @@
+services:
+  goalie-vault:
+    build: .
+    container_name: goalie-vault
+    restart: unless-stopped
+    volumes:
+      - goalie-vault-data:/data
+    labels:
+      - "traefik.enable=true"
+
+      # ── HTTP → HTTPS redirect ─────────────────────────────────────────────
+      - "traefik.http.routers.goalie-vault-http.rule=Host(`goalievault.YOURDOMAIN.com`)"
+      - "traefik.http.routers.goalie-vault-http.entrypoints=web"
+      - "traefik.http.routers.goalie-vault-http.middlewares=redirect-to-https@file"
+
+      # ── HTTPS router ──────────────────────────────────────────────────────
+      - "traefik.http.routers.goalie-vault.rule=Host(`goalievault.YOURDOMAIN.com`)"
+      - "traefik.http.routers.goalie-vault.entrypoints=websecure"
+      - "traefik.http.routers.goalie-vault.tls=true"
+      - "traefik.http.routers.goalie-vault.tls.certresolver=letsencrypt"
+
+      # ── Authelia middleware ───────────────────────────────────────────────
+      # Replace with your actual middleware name (authelia@file or authelia@docker)
+      - "traefik.http.routers.goalie-vault.middlewares=authelia@file"
+
+      # ── Backend port ──────────────────────────────────────────────────────
+      - "traefik.http.services.goalie-vault.loadbalancer.server.port=8000"
+
+    networks:
+      - proxy   # rename if your Traefik network is named differently
+
+volumes:
+  goalie-vault-data:
+    driver: local
+
+networks:
+  proxy:
+    external: true
