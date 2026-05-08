@@ -245,6 +245,16 @@ async function apiSave() {
   } finally { saving = false; }
 }
 
+// ── SEASON SORT ───────────────────────────────────────────────────────────────
+const SEASON_ORDER = ['Winter','Spring','Summer','Fall'];
+function seasonOrder(name) {
+  // Extract year and season word from any format e.g. "Patriots Winter 2023", "Warriors Fall 2024"
+  const yearMatch = name.match(/(\d{4})/);
+  const year = yearMatch ? parseInt(yearMatch[1]) : 9999;
+  const idx = SEASON_ORDER.findIndex(s => name.includes(s));
+  return year * 10 + (idx >= 0 ? idx : 5);
+}
+
 // ── STATS ────────────────────────────────────────────────────────────────────
 const valid = list => list.filter(g => (g.sa||0) > 0);
 
@@ -258,7 +268,7 @@ function seasonStats(list) {
     if(g.result==='W')s.w++; else if(g.result==='L')s.l++; else if(g.result==='OTL')s.otl++;
     if(g.ga===0) s.so++;
   }
-  return Object.values(map).sort((a,b)=>a.season.localeCompare(b.season));
+  return Object.values(map).sort((a,b)=>seasonOrder(a.season)-seasonOrder(b.season));
 }
 
 function careerTotals(list) {
@@ -513,7 +523,7 @@ function goNav(panel, btn) {
 }
 
 function populateFilters() {
-  const seasons=[...new Set(games.map(g=>g.season))].sort();
+  const seasons=[...new Set(games.map(g=>g.season))].sort((a,b)=>seasonOrder(a)-seasonOrder(b));
   const venues=[...new Set(games.map(g=>g.venue))].sort();
   ['f-season','f-detail-season'].forEach(id=>{
     const sel=document.getElementById(id);
